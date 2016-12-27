@@ -6,18 +6,20 @@ Since all these docker service are charged by count and size, and has limited wa
 	3. git (provide git service for hexo-git-deployer)
 	4. hypervisor (to automatically start nginx and openssh and provide a way to restart nginx with hypervisorctl)
 
-##### How to build the repository:
+According to my test, this image would took about 59MB memory in total when serving the site only. It's a really good option to do the [64mb challenge](https://news.ycombinator.com/item?id=2644338), if you get interested in it and want to push yourself to the limit, you could try to replace nginx with lighttpd, openssh with dropbear, hypervisor with runit, bash with some shell that comsume less, it well give you some extra memory. 
 
-First copy your public key under the root of this repo, then 
+#### How to build the repository:
+
+First copy your blog.pub (your public key) under the root of this repo, then 
 ```
-docker build -t test .
+docker build -t test:v1 .
 ```
 
-##### How to use this repository:
-In order to get whole control of this image, you actually need two repo:
-The content repo could be generated automatically by the hexo-git-deployer, while the another repo (configuration repo) should maintained by yourself.
+#### How to use this repository:
+In order to get whole control of this image, you actually need two repo, content repo and the config repo.
+While the content repo could be generated automatically by the hexo-git-deployer, the another repo that take all the configuration information inside should maintained by yourself.
 
-The info of the content repo you need to put in your deployer:
+The info of the content repo you need to put in your git-deployer:
 
 ```
 deploy:
@@ -29,6 +31,8 @@ deploy:
   email: <your email>
 ```  
 
+After you perform `hexo d`, the git would automatically copy all content (using the post-receive hook) from the blog.git to `/var/www/html`, after that the nginx in the image would automatically restart.
+
 Then what do you need as you config repo?
 Just copy the configuration from `/etc/nginx/` that has been written as you needed, then submit the content like the following(under the copied config folder):
 ```
@@ -38,3 +42,10 @@ git add -A
 git commit -m "configuration updated!"
 git push -u origin
 ```
+After you perform this, git in the docker would automatically copy all content from config.git to `/etc/nginx` and restart the nginx using `hypervisorctl restart nginx`.
+
+----------
+
+#### We host static sites differently!
+Instead of just using the normal hexo routine, to `hexo g && hexo d`, I recommendded you use something else. I'm using a self-hosted Jenkins and Gogs server to control the whole `write-build-deploy` circle, which is amazing! I decoupling the `writing-build-deploy` circle with the `ServeThings` circle. 
+You could do that too, you could not only enjoy the benefit of static site (high concurrency), but also the flexibility of dynamic site (editing things anytime everywhere). 
