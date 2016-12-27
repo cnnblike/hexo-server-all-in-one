@@ -1,0 +1,3 @@
+#!/bin/sh
+git --work-tree=/var/www/html --git-dir=/var/repo/blog.git checkout -f
+supervisorctl restart nginx

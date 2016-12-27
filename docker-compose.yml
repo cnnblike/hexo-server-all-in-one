@@ -1,0 +1,10 @@
+version: "2"
+services:
+  web:
+    image: <your image path>:<your own tag>
+    fip: <floating ip here>
+    size: s3
+    ports:
+      - "22"
+      - "80"
+      - "443"
